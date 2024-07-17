@@ -2,13 +2,13 @@
 
 namespace App\Entity;
 
-use App\Repository\SocioRepository;
+use App\Repository\PartnerRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: SocioRepository::class)]
-class Socio
+#[ORM\Entity(repositoryClass: PartnerRepository::class)]
+class Partner
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -96,7 +96,7 @@ class Socio
         return $this;
     }
 
-    public function getEmpresas()
+    public function getCompany()
     {
         return $this->companie;
     }

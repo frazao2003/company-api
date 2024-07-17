@@ -2,14 +2,14 @@
 
 namespace App\Entity;
 
-use App\Repository\SocioCompaineRepository;
+use App\Repository\PartnerCompaineRepository;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Company;
-use App\Entity\Socio;
+use App\Entity\Partner;
 
 
-#[ORM\Entity(repositoryClass: SocioCompaineRepository::class)]
-class SocioCompany
+#[ORM\Entity(repositoryClass: PartnerCompaineRepository::class)]
+class PartnerCompany
 {
 
     #[ORM\ManyToOne]
@@ -20,7 +20,7 @@ class SocioCompany
     #[ORM\ManyToOne]
     #[ORM\ID]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Socio $Socio = null;
+    private ?Partner $Partner = null;
 
     #[ORM\Column]
     private ?float $percent = null;
@@ -39,14 +39,14 @@ class SocioCompany
         return $this;
     }
 
-    public function getSocio(): ?Socio
+    public function getPartner(): ?Partner
     {
-        return $this->Socio;
+        return $this->Partner;
     }
 
-    public function setSocio(?Socio $Socio): static
+    public function setPartner(?Partner $Partner): static
     {
-        $this->Socio = $Socio;
+        $this->Partner = $Partner;
 
         return $this;
     }

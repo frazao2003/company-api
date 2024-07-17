@@ -5,7 +5,7 @@ namespace App\Entity;
 use App\Repository\CompanyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\SocioCompanie;
+use App\Entity\PartnerCompanie;
 
 #[ORM\Entity(repositoryClass: CompanyRepository::class)]
 #[ORM\Table(name: "companies")]
@@ -26,12 +26,12 @@ class Company
     private ?\DateTimeImmutable $created_at = null;
 
     
-    #[ORM\OneToMany(targetEntity:"SocioCompanie", mappedBy:"companie")]
-    private $socios;
+    #[ORM\OneToMany(targetEntity:"PartnerCompanie", mappedBy:"companie")]
+    private $Partners;
 
     public function __construct()
     {
-        $this->socios = new ArrayCollection();
+        $this->Partners = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -75,35 +75,35 @@ class Company
         return $this;
     }
 
-    public function getSocios()
+    public function getPartners()
     {
-        return $this->socios;
+        return $this->Partners;
     }
 
-    public function addSocio(Socio $socio, float $percent): void
+    public function addPartner(Partner $Partner, float $percent): void
     {
-        $socioCompany = new SocioCompany();
-        $socioCompany->setCompany($this);
-        $socioCompany->setSocio($socio);
-        $socioCompany->setPercent($percent);
+        $PartnerCompany = new PartnerCompany();
+        $PartnerCompany->setCompany($this);
+        $PartnerCompany->setPartner($Partner);
+        $PartnerCompany->setPercent($percent);
     
-        $this->socios->add($socioCompany);
+        $this->Partners->add($PartnerCompany);
     }
 
-    public function removerSocio(Socio $socio): void
+    public function removerPartner(Partner $Partner): void
     {
-        foreach ($this->socios as $socioCompany) {
-            if ($socioCompany->getSocio() == $socio) {
-                $this->socios->removeElement($socioCompany);
+        foreach ($this->Partners as $PartnerCompany) {
+            if ($PartnerCompany->getPartner() == $Partner) {
+                $this->Partners->removeElement($PartnerCompany);
                 return;
             }
         }
     }
 
-    public function verificarSocio(Socio $socio): bool
+    public function verificarPartner(Partner $Partner): bool
     {
-        foreach ($this->socios as $socioCompany) {
-            if ($socioCompany->getSocio()->getId() === $socio->getId()) {
+        foreach ($this->Partners as $PartnerCompany) {
+            if ($PartnerCompany->getPartner()->getId() === $Partner->getId()) {
                 return true;
             }else{
                 return false;

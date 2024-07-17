@@ -8,8 +8,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Repository\CompanyRepository;
-use App\Repository\SocioRepository;
-use \Exception;
+use App\Repository\PartnerRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Utils\Validator;
 
@@ -82,8 +81,8 @@ class companyController extends AbstractController
         $company = $companyRepository->find($company);
         if(!$company) throw new \Exception('company was not found');
 
-        foreach ($company->getSocios() as $sociocompany) {
-            $doctrine->getManager()->remove($sociocompany);
+        foreach ($company->getPartners() as $Partnercompany) {
+            $doctrine->getManager()->remove($Partnercompany);
         }
 
         $companyRepository->remove($company, true);
@@ -114,8 +113,8 @@ class companyController extends AbstractController
         ],200);
     }
 
-    #[Route('/companys/addsocio', name: 'socio_addcompany', methods: ['PATCH'])]
-    public function addSocio( Request $request, ManagerRegistry $d, CompanyRepository $companyRepository, SocioRepository $socioRepository): JsonResponse
+    #[Route('/companys/addPartner', name: 'Partner_addcompany', methods: ['PATCH'])]
+    public function addPartner( Request $request, ManagerRegistry $d, CompanyRepository $companyRepository, PartnerRepository $PartnerRepository): JsonResponse
     {
         if($request -> headers->get('Content-Type') == 'application/json'){
             $data = $request->toArray();
@@ -128,26 +127,26 @@ class companyController extends AbstractController
         $company = $companyRepository->findOneByCpf($data['cnpj']);
         if(!$company) throw new \Exception('company was not found');
         
-        $socio = $socioRepository->findOneByCpf($data['cpf']);
-        if(!$socio) throw new \Exception('Socio was not found');
+        $Partner = $PartnerRepository->findOneByCpf($data['cpf']);
+        if(!$Partner) throw new \Exception('Partner was not found');
 
-        if ($company->verificarSocio($socio)) {
+        if ($company->verificarPartner($Partner)) {
             throw new \Exception('Partner is not associated with this company.');
         }
         
 
-        $company->addSocio($socio, $data['percent']);
+        $company->addPartner($Partner, $data['percent']);
         $d->getManager() ->flush();
 
 
         return $this->json([
-            'message' => 'Socio added successfully',
-            'data' => $socio
+            'message' => 'Partner added successfully',
+            'data' => $Partner
             
         ],200);
     }
-    #[Route('/companys/deletesocio', name: 'socio_delete', methods: ['DELETE'])]
-    public function removeSocio( Request $request, ManagerRegistry $d, CompanyRepository $companyRepository, SocioRepository $socioRepository): JsonResponse
+    #[Route('/companys/deletePartner', name: 'Partner_delete', methods: ['DELETE'])]
+    public function removePartner( Request $request, ManagerRegistry $d, CompanyRepository $companyRepository, PartnerRepository $PartnerRepository): JsonResponse
     {
         if($request -> headers->get('Content-Type') == 'application/json'){
             $data = $request->toArray();
@@ -160,26 +159,26 @@ class companyController extends AbstractController
         $company = $companyRepository->findOneByCpf($data['cnpj']);
         if(!$company) throw new \Exception('company was not found');
         
-        $socio = $socioRepository->findOneByCpf($data['cpf']);
-        if(!$socio) throw new \Exception('Socio was not found');
+        $Partner = $PartnerRepository->findOneByCpf($data['cpf']);
+        if(!$Partner) throw new \Exception('Partner was not found');
 
-        if (!$company->verificarSocio($socio)) {
+        if (!$company->verificarPartner($Partner)) {
             throw new \Exception('Partner is not associated with this company.');
         }
 
-        $company->removerSocio($socio);
+        $company->removerPartner($Partner);
         $d->getManager() ->flush();
 
 
         return $this->json([
-            'message' => 'Socio deleted successfully',
-            'data' => $socio
+            'message' => 'Partner deleted successfully',
+            'data' => $Partner
             
         ],200);
     }
 
-    #[Route('/companys/getByCnpj', name: 'company_get_bycnpj', methods: ['GET'])]
-    public function getsociosByCnpj(Request $request, CompanyRepository $companyRepository): JsonResponse
+    #[Route('/companys/getPartnerByCnpj', name: 'company_get_Partner_bycnpj', methods: ['GET'])]
+    public function getPartnersByCnpj(Request $request, CompanyRepository $companyRepository): JsonResponse
     {
         if($request -> headers->get('Content-Type') == 'application/json'){
             $data = $request->toArray();
@@ -190,18 +189,18 @@ class companyController extends AbstractController
         $company = $companyRepository->findOneByCpf($data['cnpj']);
         if(!$company) throw new \Exception('company was not found');
 
-        $socioscompany = $company->getSocios();
+        $Partnerscompany = $company->getPartners();
 
-        $sociosData = [];
-        foreach ($socioscompany as $sociocompany) {
-            $sociosData[] = [
-                'socio' => $sociocompany->getSocio(),
-                'percent' => $sociocompany->getPercent(),
+        $PartnersData = [];
+        foreach ($Partnerscompany as $Partnercompany) {
+            $PartnersData[] = [
+                'Partner' => $Partnercompany->getPartner(),
+                'percent' => $Partnercompany->getPercent(),
             ];
         }
 
         return $this->json([
-            'data' => $sociosData
+            'data' => $PartnersData
             
         ],200);
 

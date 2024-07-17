@@ -2,20 +2,20 @@
 
 namespace App\Repository;
 
-use App\Entity\Socio;
+use App\Entity\Partner;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Socio>
+ * @extends ServiceEntityRepository<Partner>
  */
-class SocioRepository extends ServiceEntityRepository
+class PartnerRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Socio::class);
+        parent::__construct($registry, Partner::class);
     }
-    public function add(Socio $entity, bool $flush = false):void
+    public function add(Partner $entity, bool $flush = false):void
     {
         $this->getEntityManager()->persist($entity);
         if($flush){
@@ -23,14 +23,14 @@ class SocioRepository extends ServiceEntityRepository
         }
     }
 
-    public function remove(Socio $entity, bool $flush = false):void
+    public function remove(Partner $entity, bool $flush = false):void
     {
         $this->getEntityManager()->remove($entity);
         if($flush){
             $this->getEntityManager()->flush();
         }
     }
-    public function findOneByCpf(string $cpf): ?Socio
+    public function findOneByCpf(string $cpf): ?Partner
     {
         return $this->createQueryBuilder('s')
             ->andWhere('s.cpf= :cpf')
@@ -50,7 +50,7 @@ class SocioRepository extends ServiceEntityRepository
     }
 
     //    /**
-    //     * @return Socio[] Returns an array of Socio objects
+    //     * @return Partner[] Returns an array of Partner objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -64,7 +64,7 @@ class SocioRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?Socio
+    //    public function findOneBySomeField($value): ?Partner
     //    {
     //        return $this->createQueryBuilder('s')
     //            ->andWhere('s.exampleField = :val')

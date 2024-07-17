@@ -2,22 +2,22 @@
 
 namespace App\Repository;
 
-use App\Entity\SocioCompaine;
+use App\Entity\PartnerCompany;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<SocioCompaine>
+ * @extends ServiceEntityRepository<PartnerCompaine>
  */
-class SocioCompaineRepository extends ServiceEntityRepository
+class PartnerCompaineRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, SocioCompaine::class);
+        parent::__construct($registry, PartnerCompany::class);
     }
 
     //    /**
-    //     * @return SocioCompaine[] Returns an array of SocioCompaine objects
+    //     * @return PartnerCompaine[] Returns an array of PartnerCompaine objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -31,7 +31,7 @@ class SocioCompaineRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?SocioCompaine
+    //    public function findOneBySomeField($value): ?PartnerCompaine
     //    {
     //        return $this->createQueryBuilder('s')
     //            ->andWhere('s.exampleField = :val')
