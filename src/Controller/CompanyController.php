@@ -22,6 +22,7 @@ class CompanyController extends AbstractController
     {
         $companies = $companyRepository->findAll();
         $companiesData = [];
+        $data = [];
         foreach($companies as $company){
             $companiesData []= [
                 'nomeFantasia' => $company->getNomeFantasia(),
@@ -44,6 +45,7 @@ class CompanyController extends AbstractController
         return $this->json(['data' => $data], 200);
         
     }
+    //Cadastrar um empresa
     #[Route('/companys', name: 'company_create', methods: ['POST'])]
     public function create(Request $request, CompanyRepository $companyRepository): JsonResponse
     {
@@ -54,12 +56,10 @@ class CompanyController extends AbstractController
             $data = $request->request->all();
 
         }
-         // Verificar se a chave 'cnpj' está presente no array $data
         if (!array_key_exists('cnpj', $data)) {
             throw new \Exception('CNPJ is missing');
         }
 
-        // Verificar se a chave 'nomeFantasia' está presente no array $data
         if (!array_key_exists('nomeFantasia', $data)) {
             throw new \Exception('Nome Fantasia is missing');
         }
@@ -68,6 +68,7 @@ class CompanyController extends AbstractController
         $company->setNomeFantasia($data['nomeFantasia']);
         $company->setCnpj($data['cnpj']);
         $company->setCreatedAt(new \DateTimeImmutable('now', new \DateTimeZone('America/Sao_Paulo')));
+        $company->setPercent(100);
         $companyRepository->add($company, true);
         return $this->json([
             'message' => 'company Created Successfully',
@@ -75,16 +76,6 @@ class CompanyController extends AbstractController
         ], 201);
     }
 
-    #[Route('/companys', name: 'company_single', methods: ['GET'])]
-    public function getSingle(int $company, CompanyRepository $companyRepository): JsonResponse
-    {
-        $company = $companyRepository->find($company);
-        if(!$company) throw new \Exception('company was not found');
-        
-        return $this->json([
-            'data' => $company,
-        ],200);
-    }
     //Atualizar uma empresa
     #[Route('/companys/{company}', name: 'company_update', methods: ['PUT'])]
     public function update(int $company, Request $request, ManagerRegistry $d, CompanyRepository $companyRepository): JsonResponse
@@ -138,29 +129,8 @@ class CompanyController extends AbstractController
         if(!Validator::validarCNPJ($data['cnpj'])) throw new \Exception('CNPJ inválido');
         $company = $companyRepository->findOneByCnpj($data['cnpj']);
         if(!$company) throw new \Exception('company was not found');
-        $Partnerscompany = $company->getPartners();
-
-        $companyData = [
-            'nomeFantasia'=> $company->getNomeFantasia(),
-            'cnpj' => $company->getCnpj()
-        ];
-
-
-        $PartnersData = [];
-        foreach ($Partnerscompany as $Partnercompany) {
-            $PartnersData[] = [
-                'partners' => [
-                    'nome' =>$Partnercompany->getPartner()->getNome(),
-                    'cpf' => $Partnercompany->getPartner()->getCpf(),
-                ],
-                'percent' => $Partnercompany->getPercent()
-            ];
-        }
-        $data = [
-            "company" => $companyData,
-            'partners' => $PartnersData
-        ];
-   
+        $data = $company->formatarResponseCompany();
+     
         return $this->json([
             'message' => 'company Found',
             'data' => $data
@@ -207,14 +177,21 @@ class CompanyController extends AbstractController
         if ($company->verificarPartner($Partner)) {
             throw new \Exception('Partner is not associated with this company.');
         }
-        
-
+        if($company->getPercent() < $data['percent']){
+            throw new \Exception('The percentage exceeds the available percentage of the company.');
+        }
+         
         $company->addPartner($Partner, $data['percent']);
+        $Partner->addCompany($company, $data['percent']);
+        $company->setPercent($company->getPercent() - $data['percent']);
         $d->getManager() ->flush();
+
+        $data = $company->formatarResponseCompany();
 
 
         return $this->json([
             'message' => 'Partner added successfully',
+            'data' => $data
             
         ],200);
     }
@@ -236,17 +213,19 @@ class CompanyController extends AbstractController
         $Partner = $PartnerRepository->findOneByCpf($data['cpf']);
         if(!$Partner) throw new \Exception('Partner was not found');
 
-        if (!$company->verificarPartner($Partner)) {
+        $partnercompany = $company->getPartnerCompany($Partner);
+        if (!$partnercompany) {
             throw new \Exception('Partner is not associated with this company.');
         }
-
         $company->removerPartner($Partner);
+        $Partner->removerCompany($company);
+        $company->setPercent($company->getPercent() + $partnercompany->getPercent());
         $d->getManager() ->flush();
-
+        $data = $company->formatarResponseCompany();
 
         return $this->json([
             'message' => 'Partner deleted successfully',
-            'data' => $Partner
+            'data' => $data
             
         ],200);
     }
@@ -290,13 +269,23 @@ class CompanyController extends AbstractController
         $Partner = $PartnerRepository->findOneByCpf($data['cpf']);
         if(!$Partner) throw new \Exception('Partner was not found');
 
-        if ($company->verificarPartner($Partner)) {
+        if($company->getPercent() < $data['percent']){
+            throw new \Exception('The percentage exceeds the available percentage of the company.');
+
+        }
+        $partnercompany = $company->getPartnerCompany($Partner);
+        if (!$partnercompany) {
             throw new \Exception('Partner is associated with this company.');
         }
+        $partnercompany->setPercent($data['percent']);
+        if($partnercompany->getPercent() < $data['percent']){
+            $percentCompany = $data['percent'] - $partnercompany->getPercent();
+            $company->setPercent($percentCompany);
+        }if($partnercompany->getPercent() > $data['percent']){
+            $percentCompany = $partnercompany->getPercent() - $data['percent'];
+            $company->setPercent($percentCompany);
+        }
 
-
-        $company->addPartner($Partner, $data['percent']);
-        $Partner->addCompany($company, $data['percent']);
         $d->getManager()->flush();
         
     

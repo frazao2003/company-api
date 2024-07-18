@@ -9,7 +9,7 @@ use App\Entity\Partner;
 
 
 #[ORM\Entity(repositoryClass: PartnerCompanyRepository::class)]
-#[ORM\Table(name: "PartnerCompany")]
+#[ORM\Table(name: "partnercompany")]
 class PartnerCompany
 {
     #[ORM\Id]

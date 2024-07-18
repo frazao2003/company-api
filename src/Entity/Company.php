@@ -30,6 +30,9 @@ class Company
     #[ORM\OneToMany(targetEntity:"PartnerCompany", mappedBy:"company", cascade:["persist"])]
     private $Partners;
 
+    #[ORM\Column]
+    private ?float $percent = null;
+
     public function __construct()
     {
         $this->Partners = new ArrayCollection();
@@ -127,14 +130,15 @@ class Company
 
            $companyData = [
                'nomeFantasia'=> $this->getNomeFantasia(),
-               'cnpj' => $this->getCnpj()
+               'cnpj' => $this->getCnpj(),
+               'percent' => $this->getPercent()
            ];
    
    
            $PartnersData = [];
            foreach ($Partnerscompany as $Partnercompany) {
                $PartnersData[] = [
-                   'partners' => [
+                   'partner' => [
                        'nome' =>$Partnercompany->getPartner()->getNome(),
                        'cpf' => $Partnercompany->getPartner()->getCpf(),
                    ],
@@ -148,6 +152,18 @@ class Company
 
            return $data;
 
+    }
+
+    public function getPercent(): ?float
+    {
+        return $this->percent;
+    }
+
+    public function setPercent(float $percent): static
+    {
+        $this->percent = $percent;
+
+        return $this;
     }
 
     

@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Entity\PartnerCompany;
 
 #[ORM\Entity(repositoryClass: PartnerRepository::class)]
-#[ORM\Table(name: "Partner")]
+#[ORM\Table(name: "partner")]
 class Partner
 {
     #[ORM\Id]
@@ -110,6 +110,15 @@ class Partner
         $PartnerCompany->setPercent($percent);
     
         $this->company->add($PartnerCompany);
+    }
+    public function removerCompany(Company $company): void
+    {
+        foreach ($this->company as $PartnerCompany) {
+            if ($PartnerCompany->getPartner() == $company) {
+                $this->company->removeElement($PartnerCompany);
+                return;
+            }
+        }
     }
 
 }
