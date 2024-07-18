@@ -33,8 +33,8 @@ class PartnerRepository extends ServiceEntityRepository
     public function findOneByCpf(string $cpf): ?Partner
     {
         return $this->createQueryBuilder('s')
-            ->andWhere('s.cpf= :cpf')
-            ->setParameter('cpf', $cpf)
+            ->andWhere('s.Cpf= :Cpf')
+            ->setParameter('Cpf', $cpf)
             ->getQuery()
             ->getOneOrNullResult()
             ;

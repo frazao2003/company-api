@@ -5,10 +5,11 @@ namespace App\Entity;
 use App\Repository\CompanyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\PartnerCompanie;
+use App\Entity\PartnerCompany;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: CompanyRepository::class)]
-#[ORM\Table(name: "companies")]
+#[ORM\Table(name: "company")]
 class Company
 {
     #[ORM\Id]
@@ -26,7 +27,7 @@ class Company
     private ?\DateTimeImmutable $created_at = null;
 
     
-    #[ORM\OneToMany(targetEntity:"PartnerCompanie", mappedBy:"companie")]
+    #[ORM\OneToMany(targetEntity:"PartnerCompany", mappedBy:"company", cascade:["persist"])]
     private $Partners;
 
     public function __construct()
@@ -105,11 +106,51 @@ class Company
         foreach ($this->Partners as $PartnerCompany) {
             if ($PartnerCompany->getPartner()->getId() === $Partner->getId()) {
                 return true;
-            }else{
-                return false;
+            }
+            
+        }
+        return false;
+    }
+    public function getPartnerCompany(Partner $partner): ?PartnerCompany
+    {
+        foreach ($this->Partners as $partnerCompany) {
+            if ($partnerCompany->getPartner()->getId() === $partner->getId()) {
+                return $partnerCompany;
             }
         }
+        return null;
     }
+
+    public function formatarResponseCompany()
+    {
+        $Partnerscompany = $this->getPartners();
+
+           $companyData = [
+               'nomeFantasia'=> $this->getNomeFantasia(),
+               'cnpj' => $this->getCnpj()
+           ];
+   
+   
+           $PartnersData = [];
+           foreach ($Partnerscompany as $Partnercompany) {
+               $PartnersData[] = [
+                   'partners' => [
+                       'nome' =>$Partnercompany->getPartner()->getNome(),
+                       'cpf' => $Partnercompany->getPartner()->getCpf(),
+                   ],
+                   'percent' => $Partnercompany->getPercent()
+               ];
+           }
+           $data = [
+               "company" => $companyData,
+               'partners' => $PartnersData
+           ];
+
+           return $data;
+
+    }
+
+    
 
 
 }

@@ -30,11 +30,11 @@ class CompanyRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
-    public function findOneByCpf(string $cpf): ?Company
+    public function findOneByCnpj(string $cnpj): ?Company
     {
         return $this->createQueryBuilder('c')
-            ->andWhere('c.cpf= :cpf')
-            ->setParameter('cpf', $cpf)
+            ->andWhere('c.cnpj= :cnpj')
+            ->setParameter('cnpj', $cnpj)
             ->getQuery()
             ->getOneOrNullResult()
             ;
@@ -52,6 +52,16 @@ class CompanyRepository extends ServiceEntityRepository
         // Executa a consulta e obtém o resultado
         return (int) $qb->getQuery()->getSingleScalarResult() > 0;
     }
+    public function findOneByNomeFantasia(string $nomeFantasia): ?Company
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.nomeFantasia= :nomefantasia')
+            ->setParameter('nomefantasia', $nomeFantasia)
+            ->getQuery()
+            ->getOneOrNullResult()
+            ;
+    }
+
 
     //    /**
     //     * @return Company[] Returns an array of Company objects

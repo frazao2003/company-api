@@ -1,24 +1,21 @@
 <?php
 
 namespace App\Controller;
-use App\Entity\Companie;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Repository\CompanieRepository;
 use Exception;
-use App\Repository\partnerRepository;
+use App\Repository\PartnerRepository;
 use App\Entity\Partner;
-use App\Repository\partnerCompaineRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Utils\Validator;
 
 
-class partnerController extends AbstractController
+class PartnerController extends AbstractController
 {
     #[Route('/partner', name: 'app_partner', methods: ['GET'])]
-    public function getAll(partnerRepository $partnerRepository): JsonResponse
+    public function getAll(PartnerRepository $partnerRepository): JsonResponse
     {
         return $this->json([
             'data' => $partnerRepository->findAll(),
@@ -60,6 +57,7 @@ class partnerController extends AbstractController
             'data' => $partner,
         ],200);
     }
+    //Atualiza um sócio
     #[Route('/partner/{partner}', name: 'partner_update', methods: ['PUT', 'PATCH'])]
     public function update(int $partner, Request $request, ManagerRegistry $d, PartnerRepository $partnerRepository): JsonResponse
     {
@@ -81,6 +79,7 @@ class partnerController extends AbstractController
             'data' => $partner
         ], 201);
     }
+    //Deleta um sócio
     #[Route('/partner/{partner}', name: 'partner_delete', methods: ['DELETE'])]
     public function delete(int $partner, PartnerRepository $partnerRepository): JsonResponse
     {
@@ -96,6 +95,7 @@ class partnerController extends AbstractController
         ], 200);
 
     }
+    //Chama um sócio pelo cpf
     #[Route('/partner/getByCpf', name: 'partner_get_bycpf', methods: ['GET'])]
     public function getByCpf(Request $request, PartnerRepository $partnerRepository): JsonResponse
     {
@@ -114,7 +114,7 @@ class partnerController extends AbstractController
             'data' => $partner
         ],200);
     }
-
+    //Chamas todas as empresas que um sócio está vinculado, pelo seu cpf
     #[Route('/partner/getCompanyByCpf', name: 'partner_get_company_bycpf', methods: ['GET'])]
     public function getCompanyByCpf(Request $request, PartnerRepository $partnerRepository): JsonResponse
     {
@@ -130,9 +130,12 @@ class partnerController extends AbstractController
         $partnersCompany = $partner->getCompany();
 
         $companyData = [];
-        foreach ($partnersCompany as $partnerCompany) {
-            $partnersData[] = [
-                'company' => $partnerCompany->getCompany(),
+        foreach ($partnersCompany as $partnersCompany) {
+            $companyData[] = [
+                'company_id' => $partnersCompany->getCompany()->getId(),
+                'company_name' => $partnersCompany->getCompany()->getNomeFantasia(),
+                'company_cnpj' => $partnersCompany->getCompany()->getCnpj(),
+                'percent' => $partnersCompany->getPercent()
             ];
         }
 

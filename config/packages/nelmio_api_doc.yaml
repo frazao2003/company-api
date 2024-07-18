@@ -1,0 +1,24 @@
+# config/packages/nelmio_api_doc.yaml
+# config/packages/nelmio_api_doc.yaml
+nelmio_api_doc:
+    documentation:
+        info:
+            title: 'API Documentation'
+            description: 'Detailed API documentation for my Symfony application.'
+            version: '1.0.0'
+        components:
+            securitySchemes:
+                Bearer:
+                    type: http
+                    scheme: bearer
+        security:
+            - Bearer: []
+    areas:
+        default:
+            path_patterns:
+                - ^/api(?!/doc$) # Aceita rotas sob /api, exceto /api/doc
+    html_config:
+        swagger_ui_config:
+            path: /api/doc
+
+

@@ -6,8 +6,10 @@ use App\Repository\PartnerRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Entity\PartnerCompany;
 
 #[ORM\Entity(repositoryClass: PartnerRepository::class)]
+#[ORM\Table(name: "Partner")]
 class Partner
 {
     #[ORM\Id]
@@ -24,8 +26,8 @@ class Partner
     /**
      * @var Collection<int, Companie>
      */
-    #[ORM\OneToMany(targetEntity:"SocioCompanie", mappedBy:"companie")]
-    private $companie;
+    #[ORM\OneToMany(targetEntity:"PartnerCompany", mappedBy:"company", )]
+    private $company;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $created_at = null;
@@ -36,7 +38,7 @@ class Partner
     
     public function __construct()
     {
-        $this->companie = new ArrayCollection();
+        $this->company = new ArrayCollection();
     }
 
 
@@ -98,6 +100,17 @@ class Partner
 
     public function getCompany()
     {
-        return $this->companie;
+        return $this->company;
     }
+    public function addCompany(Company $company, float $percent): void
+    {
+        $PartnerCompany = new PartnerCompany();
+        $PartnerCompany->setCompany($company);
+        $PartnerCompany->setPartner($this);
+        $PartnerCompany->setPercent($percent);
+    
+        $this->company->add($PartnerCompany);
+    }
+
 }
+

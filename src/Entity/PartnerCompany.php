@@ -2,15 +2,20 @@
 
 namespace App\Entity;
 
-use App\Repository\PartnerCompaineRepository;
+use App\Repository\PartnerCompanyRepository;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Company;
 use App\Entity\Partner;
 
 
-#[ORM\Entity(repositoryClass: PartnerCompaineRepository::class)]
+#[ORM\Entity(repositoryClass: PartnerCompanyRepository::class)]
+#[ORM\Table(name: "PartnerCompany")]
 class PartnerCompany
 {
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
 
     #[ORM\ManyToOne]
     #[ORM\ID]
@@ -38,6 +43,7 @@ class PartnerCompany
 
         return $this;
     }
+    
 
     public function getPartner(): ?Partner
     {
@@ -62,4 +68,9 @@ class PartnerCompany
 
         return $this;
     }
+    public function getId(): ?float
+    {
+        return $this->id;
+    }
+
 }
