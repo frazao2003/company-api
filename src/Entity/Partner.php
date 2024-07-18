@@ -26,7 +26,7 @@ class Partner
     /**
      * @var Collection<int, Companie>
      */
-    #[ORM\OneToMany(targetEntity:"PartnerCompany", mappedBy:"company", )]
+    #[ORM\OneToMany(targetEntity:"PartnerCompany", mappedBy:"company", cascade:['persist'])]
     private $company;
 
     #[ORM\Column]
