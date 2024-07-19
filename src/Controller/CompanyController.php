@@ -23,7 +23,7 @@ class CompanyController extends AbstractController
         $companies = $companyRepository->findAll();
         $companiesData = [];
         $data = [];
-        //Formatar o array de company
+        //Formatar o array response
         foreach($companies as $company){
             $companiesData []= [
                 'nomeFantasia' => $company->getNomeFantasia(),
