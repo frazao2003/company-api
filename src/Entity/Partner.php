@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\PartnerCompany;
+use App\Repository\PartnerCompanyRepository;
 
 #[ORM\Entity(repositoryClass: PartnerRepository::class)]
 #[ORM\Table(name: "partner")]
@@ -119,6 +120,26 @@ class Partner
                 return;
             }
         }
+    }
+    public function formataCompanyResponse(PartnerCompanyRepository $partnerCompanyRepository){
+        $partnerData  = [
+            'nome' =>$this->getNome(),
+            'cpf' =>$this->getCpf()
+        ];
+        $partnerCompanies = $partnerCompanyRepository->findAllByPartner($this);
+        $companyData = [];
+        foreach($partnerCompanies as $partnerCompany){
+            $companyData = [
+                'nomeFantasia'=> $partnerCompany->getCompany()->getNomeFantasia(),
+                'cnpj' => $partnerCompany->getCompany()->getCnpj(),
+                'percent' => $partnerCompany->getPercent()
+            ];
+        }
+        $data [] = [
+            'partner'=> $partnerData,
+            'company' => $companyData
+        ];
+        return $data;
     }
 
 }

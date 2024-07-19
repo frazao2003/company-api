@@ -28,13 +28,15 @@ class CompanyController extends AbstractController
             $companiesData []= [
                 'nomeFantasia' => $company->getNomeFantasia(),
                 'cnpj' => $company->getCnpj(),
+                'percent' => $company->getPercent()
             ];
             $partnercompany = $company->getPartners();
             $partnerData = [];
             foreach($partnercompany as $partnercompany){
                 $partnerData [] = [
                     'nome' => $partnercompany->getPartner()->getNome(),
-                    'cpf' => $partnercompany->getPartner()->getCpf()
+                    'cpf' => $partnercompany->getPartner()->getCpf(),
+                    'percent' => $partnercompany->getPercent()
                 ];
             }
             $data[] = [

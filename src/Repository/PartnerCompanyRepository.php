@@ -2,9 +2,13 @@
 
 namespace App\Repository;
 
+use App\Entity\Partner;
 use App\Entity\PartnerCompany;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Common\Collections\ArrayCollection;
+
 
 /**
  * @extends ServiceEntityRepository<PartnerCompany>
@@ -21,6 +25,19 @@ class PartnerCompanyRepository extends ServiceEntityRepository
         if($flush){
             $this->getEntityManager()->flush();
         }
+
+        
+    }
+    public function findAllByPartner(Partner $partner): ?Collection
+    {
+        $result = $this->createQueryBuilder('c')
+            ->andWhere('c.Partner= :Partner')
+            ->setParameter('Partner', $partner)
+            ->getQuery()
+            ->getResult(); // Use getResult() para obter uma coleção de entidades Partner
+
+            return new ArrayCollection($result);
+            
     }
 
     //    /**

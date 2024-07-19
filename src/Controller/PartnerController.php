@@ -8,6 +8,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Exception;
 use App\Repository\PartnerRepository;
 use App\Entity\Partner;
+use App\Repository\PartnerCompanyRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use App\Utils\Validator;
 
@@ -15,10 +16,31 @@ use App\Utils\Validator;
 class PartnerController extends AbstractController
 {
     #[Route('/partner', name: 'app_partner', methods: ['GET'])]
-    public function getAll(PartnerRepository $partnerRepository): JsonResponse
+    public function getAll(PartnerRepository $partnerRepository, PartnerCompanyRepository $partnerCompanyRepository): JsonResponse
     {
+        $partners = $partnerRepository->findAll();
+        $data = [];
+        foreach($partners as $partner){
+            $partnerData  = [
+                'nome' =>$partner->getNome(),
+                'cpf' =>$partner->getCpf()
+            ];
+            $partnerCompanies = $partnerCompanyRepository->findAllByPartner($partner);
+            $companyData = [];
+            foreach($partnerCompanies as $partnerCompany){
+                $companyData = [
+                    'nomeFantasia'=> $partnerCompany->getCompany()->getNomeFantasia(),
+                    'cnpj' => $partnerCompany->getCompany()->getCnpj(),
+                    'percent' => $partnerCompany->getPercent()
+                ];
+            }
+            $data [] = [
+                'partner'=> $partnerData,
+                'company' => $companyData
+            ];
+        }
         return $this->json([
-            'data' => $partnerRepository->findAll(),
+            'data' => $data
         ],200);
     }
     #[Route('/partner', name: 'partner_create', methods: ['POST'])]
@@ -47,23 +69,9 @@ class PartnerController extends AbstractController
         ], 201);
     }
 
-    #[Route('/partner/{partner}', name: 'partner_single', methods: ['GET'])]
-    public function getSingle(int $partner, PartnerRepository $partnerRepository): JsonResponse
+    #[Route('/partner/getbyCpf', name: 'partner_single', methods: ['GET'])]
+    public function getSingle(Request $request, PartnerRepository $partnerRepository, PartnerCompanyRepository $partnerCompanyRepository): JsonResponse
     {
-        $partner = $partnerRepository->find($partner);
-        if(!$partner) throw new Exception('partner was not found');
-        
-        return $this->json([
-            'data' => $partner,
-        ],200);
-    }
-    //Atualiza um sócio
-    #[Route('/partner/{partner}', name: 'partner_update', methods: ['PUT', 'PATCH'])]
-    public function update(int $partner, Request $request, ManagerRegistry $d, PartnerRepository $partnerRepository): JsonResponse
-    {
-        
-        $partner = $partnerRepository->find($partner);
-        if(!$partner) throw new Exception('partner was not found');
         if($request -> headers->get('Content-Type') == 'application/json'){
             $data = $request->toArray();
 
@@ -71,7 +79,29 @@ class PartnerController extends AbstractController
             $data = $request->request->all();
 
         }
+        if(!Validator::validarCPF($data['cpf'])) throw new Exception('CPF inválido');
+        $partner = $partnerRepository->findOneByCpf($data['cpf']);
+        if(!$partner) throw new Exception('partner was not found');
+        $data = $partner->formataCompanyResponse($partnerCompanyRepository);
+        
+        return $this->json([
+            'data' => $data,
+        ],200);
+    }
+    //Atualiza um sócio pelo seu id
+    #[Route('/partner/update', name: 'partner_update', methods: ['PUT', 'PATCH'])]
+    public function update(int $partner, Request $request, ManagerRegistry $d, PartnerRepository $partnerRepository): JsonResponse
+    {
+        
+        if($request -> headers->get('Content-Type') == 'application/json'){
+            $data = $request->toArray();
+        }else{
+            $data = $request->request->all();
+        }
+        $partner = $partnerRepository->find($data['id']);
+        if(!$partner) throw new Exception('partner was not found');
         $partner->setNome($data['nome']);
+        if(!Validator::validarCPF($data['cpf'])) throw new \Exception('CPF inválido');
         $partner->setCpf($data['cpf']);
         $d->getManager() ->flush();
         return $this->json([
@@ -80,11 +110,25 @@ class PartnerController extends AbstractController
         ], 201);
     }
     //Deleta um sócio
-    #[Route('/partner/{partner}', name: 'partner_delete', methods: ['DELETE'])]
-    public function delete(int $partner, PartnerRepository $partnerRepository): JsonResponse
+    #[Route('/partner/deleteByCPF', name: 'partner_delete', methods: ['DELETE'])]
+    public function delete(Request $request, PartnerRepository $partnerRepository, PartnerCompanyRepository $partnerCompanyRepository, ManagerRegistry $doctrine): JsonResponse
     {
-        $partner = $partnerRepository->find($partner);
+        if($request -> headers->get('Content-Type') == 'application/json'){
+            $data = $request->toArray();
+        }else{
+            $data = $request->request->all();
+        }
+        $partner = $partnerRepository->findOneByCpf($data['cpf']);
         if(!$partner) throw new Exception('partner was not found');
+        $partnerCompanies = $partnerCompanyRepository->findAllByPartner($partner);
+        foreach($partnerCompanies as $partnerCompany){
+            $company = $partnerCompany->getCompany();
+            $company->setPercent($company->getPercent() + $partnerCompany->getPercent());
+            $doctrine->getManager()->remove($partnerCompany);
+            $doctrine->getManager()->persist($company);
+            $doctrine->getManager()->flush();
+
+        }
 
         $partnerRepository->remove($partner, true);
 
@@ -94,56 +138,6 @@ class PartnerController extends AbstractController
             'data' => $partner
         ], 200);
 
-    }
-    //Chama um sócio pelo cpf
-    #[Route('/partner/getByCpf', name: 'partner_get_bycpf', methods: ['GET'])]
-    public function getByCpf(Request $request, PartnerRepository $partnerRepository): JsonResponse
-    {
-        if($request -> headers->get('Content-Type') == 'application/json'){
-            $data = $request->toArray();
-        }else{
-            $data = $request->request->all();
-        }
-        if(!Validator::validarCPF($data['cpf'])) throw new Exception('CPF inválido');
-        $partner = $partnerRepository->findOneByCpf($data['cpf']);
-        if(!$partner) throw new Exception('partner was not found');
-
-
-        return $this->json([
-            'message' => 'partner found',
-            'data' => $partner
-        ],200);
-    }
-    //Chamas todas as empresas que um sócio está vinculado, pelo seu cpf
-    #[Route('/partner/getCompanyByCpf', name: 'partner_get_company_bycpf', methods: ['GET'])]
-    public function getCompanyByCpf(Request $request, PartnerRepository $partnerRepository): JsonResponse
-    {
-        if($request -> headers->get('Content-Type') == 'application/json'){
-            $data = $request->toArray();
-        }else{
-            $data = $request->request->all();
-        }
-        if(!Validator::validarCPF($data['cpf'])) throw new Exception('CPF inválido');
-        $partner = $partnerRepository->findOneByCpf($data['cpf']);
-        if(!$partner) throw new Exception('partner was not found');
-
-        $partnersCompany = $partner->getCompany();
-
-        $companyData = [];
-        foreach ($partnersCompany as $partnersCompany) {
-            $companyData[] = [
-                'company_id' => $partnersCompany->getCompany()->getId(),
-                'company_name' => $partnersCompany->getCompany()->getNomeFantasia(),
-                'company_cnpj' => $partnersCompany->getCompany()->getCnpj(),
-                'percent' => $partnersCompany->getPercent()
-            ];
-        }
-
-
-        return $this->json([
-            'message' => 'partner found',
-            'data' => $companyData
-        ],200);
     }
 
    
