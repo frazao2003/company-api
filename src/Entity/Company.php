@@ -129,6 +129,7 @@ class Company
         $Partnerscompany = $this->getPartners();
 
            $companyData = [
+               'id'=>$this->getId(),
                'nomeFantasia'=> $this->getNomeFantasia(),
                'cnpj' => $this->getCnpj(),
                'percent' => $this->getPercent()

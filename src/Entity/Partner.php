@@ -13,6 +13,8 @@ use App\Repository\PartnerCompanyRepository;
 #[ORM\Table(name: "partner")]
 class Partner
 {
+    private PartnerCompanyRepository $partnerCompanyRepository;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -121,12 +123,13 @@ class Partner
             }
         }
     }
-    public function formataCompanyResponse(PartnerCompanyRepository $partnerCompanyRepository){
+    public function formataCompanyResponse(){
         $partnerData  = [
+            'id'=>$this->getId(),
             'nome' =>$this->getNome(),
             'cpf' =>$this->getCpf()
         ];
-        $partnerCompanies = $partnerCompanyRepository->findAllByPartner($this);
+        $partnerCompanies = $this->partnerCompanyRepository->findAllByPartner($this);
         $companyData = [];
         foreach($partnerCompanies as $partnerCompany){
             $companyData = [
