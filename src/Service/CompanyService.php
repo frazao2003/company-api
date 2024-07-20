@@ -60,9 +60,9 @@ class CompanyService{
                 'cnpj' => $cnpjMascarado,
                 'percent' => $company->getPercent()
             ];
-            $partnercompany = $company->getPartners();
+            $partnercompanies = $this->partnerCompanyRepository->findAllByCompany($company);
             $partnerData = [];
-            foreach($partnercompany as $partnercompany){
+            foreach($partnercompanies as $partnercompany){
                 $cpfMascarado = $this->mascaraCpfeCnpj->mascaraCPF($partnercompany->getPartner()->getCpf());
                 $partnerData [] = [
                     'nome' => $partnercompany->getPartner()->getNome(),
@@ -163,7 +163,7 @@ class CompanyService{
          //validar se a company existe no banco de dados
          if(!$company) throw new \Exception('company was not found');
          //deletar todos os partner associados 
-         foreach ($company->getPartners() as $Partnercompany) {
+         foreach ($this->partnerCompanyRepository->findAllByCompany($company) as $Partnercompany) {
              $this->entityManager->remove($Partnercompany);
          }
          //persistir dados no banco de dados

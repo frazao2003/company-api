@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Repository\CompanyRepository;
 use App\Repository\PartnerRepository;
 use App\Utils\Validator;
 use App\Repository\PartnerCompanyRepository;

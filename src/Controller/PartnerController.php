@@ -5,19 +5,18 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use Exception;
-use App\Repository\PartnerRepository;
-use App\Entity\Partner;
-use App\Repository\PartnerCompanyRepository;
 use App\Service\PartnerService;
-use Doctrine\Persistence\ManagerRegistry;
-use App\Utils\Validator;
+
 
 
 class PartnerController extends AbstractController
 {   
     //Injeção de dependências
     private PartnerService $partnerService;
+    public function __construct(PartnerService $partnerService)
+    {
+        $this->partnerService = $partnerService;
+    }
     //função para buscar todos os partner 
     #[Route('/partner', name: 'app_partner', methods: ['GET'])]
     public function getAll(): JsonResponse

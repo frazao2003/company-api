@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Partner;
+use App\Entity\Company;
 use App\Entity\PartnerCompany;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Collections\Collection;
@@ -33,6 +34,17 @@ class PartnerCompanyRepository extends ServiceEntityRepository
         $result = $this->createQueryBuilder('c')
             ->andWhere('c.Partner= :Partner')
             ->setParameter('Partner', $partner)
+            ->getQuery()
+            ->getResult(); // Use getResult() para obter uma coleção de entidades Partner
+
+            return new ArrayCollection($result);
+            
+    }
+    public function findAllByCompany(Company $company): ?Collection
+    {
+        $result = $this->createQueryBuilder('c')
+            ->andWhere('c.company= :company')
+            ->setParameter('company', $company)
             ->getQuery()
             ->getResult(); // Use getResult() para obter uma coleção de entidades Partner
 
