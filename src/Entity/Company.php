@@ -124,36 +124,6 @@ class Company
         return null;
     }
 
-    public function formatarResponseCompany()
-    {
-        $Partnerscompany = $this->getPartners();
-
-           $companyData = [
-               'id'=>$this->getId(),
-               'nomeFantasia'=> $this->getNomeFantasia(),
-               'cnpj' => $this->getCnpj(),
-               'percent' => $this->getPercent()
-           ];
-   
-   
-           $PartnersData = [];
-           foreach ($Partnerscompany as $Partnercompany) {
-               $PartnersData[] = [
-                   'partner' => [
-                       'nome' =>$Partnercompany->getPartner()->getNome(),
-                       'cpf' => $Partnercompany->getPartner()->getCpf(),
-                   ],
-                   'percent' => $Partnercompany->getPercent()
-               ];
-           }
-           $data = [
-               "company" => $companyData,
-               'partners' => $PartnersData
-           ];
-
-           return $data;
-
-    }
 
     public function getPercent(): ?float
     {

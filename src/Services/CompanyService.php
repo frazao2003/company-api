@@ -9,6 +9,7 @@ use App\Repository\PartnerRepository;
 use App\Utils\Validator;
 use App\Repository\PartnerCompanyRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\MascaraCPFeCNPJ;
 
 
 
@@ -20,19 +21,27 @@ class CompanyService{
     private PartnerRepository $partnerRepository;
     private EntityManagerInterface $entityManager;
     private PartnerCompanyRepository $partnerCompanyRepository;
+    private FormateResponseDTO $formateResponseDTO;
+    private MascaraCPFeCNPJ $mascaraCpfeCnpj;
+
 
 
     public function __construct(
         CompanyRepository $companyRepository, 
         PartnerRepository $partnerRepository, 
         EntityManagerInterface $entityManager,
-        PartnerCompanyRepository $partnerCompanyRepository
+        PartnerCompanyRepository $partnerCompanyRepository,
+        FormateResponseDTO $formateResponseDTO,
+        MascaraCPFeCNPJ $mascaraCPFeCNPJ
     )
     {
         $this->companyRepository = $companyRepository;
         $this->partnerRepository = $partnerRepository;
         $this->entityManager = $entityManager;
         $this->partnerCompanyRepository = $partnerCompanyRepository;
+        $this->formateResponseDTO = $formateResponseDTO;
+        $this->mascaraCpfeCnpj = $mascaraCPFeCNPJ;
+
     }
 
     public function getAll(){
@@ -41,17 +50,19 @@ class CompanyService{
         $data = [];
         //Formatar o array response
         foreach($companies as $company){
+            $cnpjMascarado = $this->mascaraCpfeCnpj->mascaraCNPJ($company->getCnpj());
             $companiesData []= [
                 'nomeFantasia' => $company->getNomeFantasia(),
-                'cnpj' => $company->getCnpj(),
+                'cnpj' => $cnpjMascarado,
                 'percent' => $company->getPercent()
             ];
             $partnercompany = $company->getPartners();
             $partnerData = [];
             foreach($partnercompany as $partnercompany){
+                $cpfMascarado = $this->mascaraCpfeCnpj->mascaraCPF($partnercompany->getPartner()->getCpf());
                 $partnerData [] = [
                     'nome' => $partnercompany->getPartner()->getNome(),
-                    'cpf' => $partnercompany->getPartner()->getCpf(),
+                    'cpf' => $cpfMascarado,
                     'percent' => $partnercompany->getPercent()
                 ];
             }
@@ -115,7 +126,7 @@ class CompanyService{
         } 
         // persistir dados
         $this->entityManager->flush();
-        $data = $company->formatarResponseCompany();
+        $data = $this->formateResponseDTO->formatarResponseCompany($company);
         return $data;
     }
 
@@ -131,7 +142,7 @@ class CompanyService{
          //persistir dados no banco de dados
          $this->companyRepository->remove($company, true);
          //formatar para response
-         $data = $company->formatarResponseCompany();
+         $data = $this->formateResponseDTO->formatarResponseCompany($company);
          return $data;
     }
     public function getByNomeFantasia($nomeFantasia){
@@ -141,7 +152,7 @@ class CompanyService{
          if(!$company) throw new \Exception('company was not found');
          
          //formatar para response
-         $data = $company->formatarResponseCompany();
+         $data = $this->formateResponseDTO->formatarResponseCompany($company);
          return $data;
     
     }
@@ -154,7 +165,7 @@ class CompanyService{
         //validar a existência
         if(!$company) throw new \Exception('company was not found');
         //formatar para response
-        $data = $company->formatarResponseCompany();
+        $data = $this->formateResponseDTO->formatarResponseCompany($company);
         return $data;
     }
 
@@ -185,7 +196,7 @@ class CompanyService{
         $company->setPercent($company->getPercent() -$percent);
         $this->entityManager->flush();
         //formatar response
-        $data = $company->formatarResponseCompany();
+        $data = $this->formateResponseDTO->formatarResponseCompany($company);
         return $data;  
     }
     public function removePartner($cpf, $cnpj){
@@ -211,7 +222,7 @@ class CompanyService{
         $company->setPercent($company->getPercent() + $partnerCompany->getPercent());
         $this->entityManager->flush();
         //formatar response
-        $data = $company->formatarResponseCompany();
+        $data = $this->formateResponseDTO->formatarResponseCompany($company);
         return $data;
     }
 
@@ -248,7 +259,7 @@ class CompanyService{
         $this->entityManager->persist($company);
         $this->entityManager->flush();
         //formata o response
-        $data = $company->formatarResponseCompany();
+        $data = $this->formateResponseDTO->formatarResponseCompany($company);
 
         return $data;
     }

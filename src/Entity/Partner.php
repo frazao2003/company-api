@@ -123,27 +123,6 @@ class Partner
             }
         }
     }
-    public function formataCompanyResponse(){
-        $partnerData  = [
-            'id'=>$this->getId(),
-            'nome' =>$this->getNome(),
-            'cpf' =>$this->getCpf()
-        ];
-        $partnerCompanies = $this->partnerCompanyRepository->findAllByPartner($this);
-        $companyData = [];
-        foreach($partnerCompanies as $partnerCompany){
-            $companyData = [
-                'nomeFantasia'=> $partnerCompany->getCompany()->getNomeFantasia(),
-                'cnpj' => $partnerCompany->getCompany()->getCnpj(),
-                'percent' => $partnerCompany->getPercent()
-            ];
-        }
-        $data [] = [
-            'partner'=> $partnerData,
-            'company' => $companyData
-        ];
-        return $data;
-    }
 
 }
 

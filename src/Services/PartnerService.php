@@ -8,25 +8,32 @@ use App\Utils\Validator;
 use App\Repository\PartnerCompanyRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Partner;
+use App\Utils\MascaraCPFeCNPJ;
 
 class PartnerService{
     
-    private CompanyRepository $companyRepository;
     private PartnerRepository $partnerRepository;
     private EntityManagerInterface $entityManager;
     private PartnerCompanyRepository $partnerCompanyRepository;
+    private FormateResponseDTO $formateResponseDTO;
+    private MascaraCPFeCNPJ $mascaraCpfeCnpj;
+
+
 
     public function __construct(
-        CompanyRepository $companyRepository, 
         PartnerRepository $partnerRepository, 
         EntityManagerInterface $entityManager,
-        PartnerCompanyRepository $partnerCompanyRepository
+        PartnerCompanyRepository $partnerCompanyRepository,
+        FormateResponseDTO $formateResponseDTO,
+        MascaraCPFeCNPJ $mascaraCPFeCNPJ
+
     )
     {
-        $this->companyRepository = $companyRepository;
         $this->partnerRepository = $partnerRepository;
         $this->entityManager = $entityManager;
         $this->partnerCompanyRepository = $partnerCompanyRepository;
+        $this->formateResponseDTO = $formateResponseDTO;
+        $this->mascaraCpfeCnpj = $mascaraCPFeCNPJ;
     }
 
     public function getAll(){
@@ -35,16 +42,18 @@ class PartnerService{
         $data = [];
         //formata os dados do response
         foreach($partners as $partner){
+            $cpfMascarado = $this->mascaraCpfeCnpj->mascaraCPF($partner->getCpf());
             $partnerData  = [
                 'nome' =>$partner->getNome(),
-                'cpf' =>$partner->getCpf()
+                'cpf' =>$cpfMascarado
             ];
             $partnerCompanies = $this->partnerCompanyRepository->findAllByPartner($partner);
             $companyData = [];
             foreach($partnerCompanies as $partnerCompany){
+                $cnpjMascarado = $this->mascaraCpfeCnpj->mascaraCNPJ($partnerCompany->getCompany()->getCnpj());
                 $companyData = [
                     'nomeFantasia'=> $partnerCompany->getCompany()->getNomeFantasia(),
-                    'cnpj' => $partnerCompany->getCompany()->getCnpj(),
+                    'cnpj' => $cnpjMascarado,
                     'percent' => $partnerCompany->getPercent()
                 ];
             }
@@ -79,7 +88,7 @@ class PartnerService{
         $partner = $this->partnerRepository->findOneByCpf($cpf);
         if(!$partner) throw new \Exception('partner was not found');
         //formata o response
-        $data = $partner->formataCompanyResponse();
+        $data = $this->formateResponseDTO->formatarPartnerResponse($partner);
     }
 
     public function update($id, $nome, $cpf){
