@@ -43,8 +43,12 @@ class CompanyService{
         $this->mascaraCpfeCnpj = $mascaraCPFeCNPJ;
 
     }
-
-    public function getAll(){
+    /**
+     * Retorna uma lista de todas as empresas e seus respectivos parceiros.
+     * 
+     * @return array
+     */
+    public function getAll():array{
         $companies = $this->companyRepository->findAll();
         $companiesData = [];
         $data = [];
@@ -74,7 +78,16 @@ class CompanyService{
         }
         return $data;
     }
-    public function create($cnpj, $nomeFantasia){
+
+    /**
+     * Cria uma nova empresa.
+     * 
+     * @param string $cnpj
+     * @param string $nomeFantasia
+     * @return Company
+     * @throws Exception
+     */    
+    public function create($cnpj, $nomeFantasia):Company{
          //validar o conteúdo do array
          if (!$cnpj) {
             throw new \Exception('CNPJ is missing');
@@ -101,8 +114,16 @@ class CompanyService{
         $this->companyRepository->add($company, true);
         return $company;
     }
-      
-    public function update($id, $cnpj, $nomeFantasia){
+    /**
+     * Atualiza uma empresa existente.
+     * 
+     * @param int $id
+     * @param string|null $cnpj
+     * @param string|null $nomeFantasia
+     * @return array
+     * @throws Exception
+     */  
+    public function update($id, $cnpj, $nomeFantasia):array{
         // buscar a company pelo cnpj
         $company = $this->companyRepository->find($id);
         //validar se a company existe no banco de dados
@@ -129,8 +150,14 @@ class CompanyService{
         $data = $this->formateResponseDTO->formatarResponseCompany($company);
         return $data;
     }
-
-    public function delete($cnpj){
+    /**
+     * Deleta uma empresa pelo seu CNPJ.
+     * 
+     * @param string $cnpj
+     * @return array
+     * @throws Exception
+     */
+    public function delete($cnpj):array{
          //buscar a company pelo id
          $company = $this->companyRepository->findOneByCnpj($cnpj);
          //validar se a company existe no banco de dados
@@ -145,7 +172,14 @@ class CompanyService{
          $data = $this->formateResponseDTO->formatarResponseCompany($company);
          return $data;
     }
-    public function getByNomeFantasia($nomeFantasia){
+    /**
+     * Busca uma empresa pelo nome fantasia.
+     * 
+     * @param string $nomeFantasia
+     * @return array
+     * @throws Exception
+     */
+    public function getByNomeFantasia($nomeFantasia):array{
          //buscar company pelo nomeFantasisa
          $company = $this->companyRepository->findOneByNomeFantasia($nomeFantasia);
          //validar existência
@@ -156,8 +190,14 @@ class CompanyService{
          return $data;
     
     }
-
-    public function getByCnpj($cnpj){
+    /**
+     * Busca uma empresa pelo CNPJ.
+     * 
+     * @param string $cnpj
+     * @return array
+     * @throws Exception
+     */
+    public function getByCnpj($cnpj):array{
         //validar CNPJ
         if(!Validator::validarCNPJ($cnpj)) throw new \Exception('CNPJ inválido');
         //buscar a company pelo CNPJ
@@ -168,8 +208,16 @@ class CompanyService{
         $data = $this->formateResponseDTO->formatarResponseCompany($company);
         return $data;
     }
-
-    public function addPartner(String $cpf, String $cnpj, Float $percent){
+    /**
+     * Adiciona um parceiro a uma empresa.
+     * 
+     * @param string $cpf
+     * @param string $cnpj
+     * @param float $percent
+     * @return array
+     * @throws Exception
+     */
+    public function addPartner(String $cpf, String $cnpj, Float $percent):array{
 
         //validar CPF e CNPJ
         if(!Validator::validarCNPJ($cnpj)) throw new \Exception('CNPJ inválido');
@@ -199,7 +247,15 @@ class CompanyService{
         $data = $this->formateResponseDTO->formatarResponseCompany($company);
         return $data;  
     }
-    public function removePartner($cpf, $cnpj){
+    /**
+     * Remove um parceiro de uma empresa.
+     * 
+     * @param string $cpf
+     * @param string $cnpj
+     * @return array
+     * @throws Exception
+     */
+    public function removePartner($cpf, $cnpj):array{
         //validar CPF e CNPJ
         if(!Validator::validarCNPJ($cnpj)) throw new \Exception('CNPJ inválido');
         if(!Validator::validarCPF($cpf)) throw new \Exception('CPF inválido');
@@ -225,8 +281,16 @@ class CompanyService{
         $data = $this->formateResponseDTO->formatarResponseCompany($company);
         return $data;
     }
-
-    public function updatePercent($cnpj, $cpf, $percent){
+    /**
+     * Atualiza a porcentagem de um parceiro em uma empresa.
+     * 
+     * @param string $cnpj
+     * @param string $cpf
+     * @param float $percent
+     * @return array
+     * @throws Exception
+     */
+    public function updatePercent($cnpj, $cpf, $percent):array{
         //valida cpf e cnpj
         if(!Validator::validarCNPJ($cnpj)) throw new \Exception('CNPJ inválido');
         if(!Validator::validarCPF($cpf)) throw new \Exception('CPF inválido');

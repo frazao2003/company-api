@@ -35,8 +35,12 @@ class PartnerService{
         $this->formateResponseDTO = $formateResponseDTO;
         $this->mascaraCpfeCnpj = $mascaraCPFeCNPJ;
     }
-
-    public function getAll(){
+    /**
+     * Retorna uma lista de todos os parceiros e suas respectivas empresas.
+     * 
+     * @return array
+     */
+    public function getAll():array{
         //Chama todos os partner do banco de dados
         $partners = $this->partnerRepository->findAll();
         $data = [];
@@ -64,8 +68,15 @@ class PartnerService{
             return $data;
         }
     }
-
-    public function create($cpf, $nome){
+    /**
+     * Cria um novo parceiro.
+     * 
+     * @param string $cpf
+     * @param string $nome
+     * @return Partner
+     * @throws Exception
+     */
+    public function create($cpf, $nome):Partner{
         //valida os campos do request
         if(!Validator::validarCPF($cpf)) throw new \Exception('CPF inválido');
 
@@ -80,8 +91,14 @@ class PartnerService{
         $this->partnerRepository->add($partner, true);
         return $partner;
     }
-
-    public function getByCpf($cpf){
+    /**
+     * Busca um parceiro pelo CPF.
+     * 
+     * @param string $cpf
+     * @return array
+     * @throws Exception
+     */
+    public function getByCpf($cpf):array{
         //valida i cof
         if(!Validator::validarCPF($cpf)) throw new \Exception('CPF inválido');
         //busca no banco e valida a existência
@@ -89,9 +106,18 @@ class PartnerService{
         if(!$partner) throw new \Exception('partner was not found');
         //formata o response
         $data = $this->formateResponseDTO->formatarPartnerResponse($partner);
+        return $data;
     }
-
-    public function update($id, $nome, $cpf){
+    /**
+     * Atualiza um parceiro.
+     * 
+     * @param int $id
+     * @param string|null $nome
+     * @param string|null $cpf
+     * @return Partner
+     * @throws Exception
+     */
+    public function update($id, $nome, $cpf):Partner{
         //busca o partner pelo id e valida a existência
         $partner = $this->partnerRepository->find($id);
         if(!$partner) throw new \Exception('partner was not found');
@@ -106,8 +132,14 @@ class PartnerService{
         $this->entityManager->flush();
         return $partner;
     }
-
-    public function delete($cpf){
+    /**
+     * Deleta um parceiro pelo CPF.
+     * 
+     * @param string $cpf
+     * @return Partner
+     * @throws Exception
+     */
+    public function delete($cpf):Partner{
         //busca no banco de dados e valida existência
         $partner = $this->partnerRepository->findOneByCpf($cpf);
         if(!$partner) throw new \Exception('partner was not found');
