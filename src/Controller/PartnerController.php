@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Service\PartnerService;
+use App\Dto\PartnerDTO;
 
 
 
@@ -20,11 +21,19 @@ class PartnerController extends AbstractController
     }
     //função para buscar todos os partner 
     #[Route('/partner', name: 'app_partner', methods: ['GET'])]
-    public function filterPartner(PartnerFilter $filter): JsonResponse
+    public function filterPartner(Request $request): JsonResponse
     {
-        $data = $this->partnerService->filterPartner($filter);
+        if($request -> headers->get('Content-Type') == 'application/json'){
+            $data = $request->toArray();
+        }else{
+            $data = $request->request->all();
+        }
+        $filter = new PartnerFilter();
+        $filter->setName($data['name']);
+        $filter->setCpf($data['cpf']);
+        $reponse = $this->partnerService->filterPartner($filter);
         return $this->json([
-            'data' => $data
+            'data' => $reponse
         ],200);
     }
     //criar partner
@@ -39,8 +48,11 @@ class PartnerController extends AbstractController
             $data = $request->request->all();
 
         }
-        $cpf = $data['cpf'];
-        $nome =$data['nome'];
+        $partnerDto = new PartnerDto
+        (            
+            $data['name'],
+            $data['cnpj']
+        );
         $partner = $this->partnerService->create($cpf, $nome);
         return $this->json([
             'message' => 'partner Created Successfully',

@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Dto\CompanyFilter;
-use App\Dto\CreateCompanyDTO;
+use App\Dto\CompanyDTO;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,8 +19,16 @@ class CompanyController extends AbstractController
     }
 
     #[Route('/companys', name: 'app_company', methods: ['GET'])]
-    public function filterCompanies(CompanyFilter $filter): JsonResponse
+    public function filterCompanies(Request $request): JsonResponse
     {
+        if($request -> headers->get('Content-Type') == 'application/json'){
+            $data = $request->toArray();
+        }else{
+            $data = $request->request->all();
+        }
+        $filter = new CompanyFilter();
+        $filter->setName($data['name']);
+        $filter->setCnpj($data['cnpj']);
         $data = $this->companyService->filterCompanies($filter);
         return $this->json(['data' => $data], 200);
         
@@ -32,16 +40,14 @@ class CompanyController extends AbstractController
         //validar o tipos de dado do request
         if($request -> headers->get('Content-Type') == 'application/json'){
             $data = $request->toArray();
-
         }else{
             $data = $request->request->all();
-
         }
-        $companyDTO = new CreateCompanyDTO(
+        $companyDTO = new CompanyDTO(
             $data['name'],
             $data['cnpj']
         );
-        $company = $this->companyService->create($cnpj, $nomeFantasia);
+        $company = $this->companyService->create($companyDTO);
         return $this->json([
             'message' => 'company Created Successfully',
             'data' => $company
@@ -59,9 +65,11 @@ class CompanyController extends AbstractController
         }else{
             $data = $request->request->all();
         }
-        $cnpj = $data['cnpj'];
-        $nomeFantasia = $data['nomeFantasia'];
-        $data = $this->companyService->update($id, $cnpj,$nomeFantasia);
+        $companyDTO = new CompanyDTO(
+            $data['name'],
+            $data['cnpj']
+        );
+        $data = $this->companyService->update($id, $companyDTO);
         return $this->json([
             'message' => 'company Updated Successfully',
             'data' => $data

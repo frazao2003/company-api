@@ -2,7 +2,7 @@
 
 namespace App\Dto;
 
-class CreateCompanyDTO{
+class CompanyDTO{
     public string $name;
     public string $cnpj;
 

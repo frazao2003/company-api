@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use App\Dto\CompanyFilter;
-use App\Dto\CreateCompanyDTO;
+use App\Dto\CompanyDTO;
 use App\Entity\Company;
 
 use App\Entity\PartnerCompany;
@@ -76,8 +76,7 @@ class CompanyService{
      * @return Company
      * @throws Exception
      */    
-    public function create(CreateCompanyDTO $createCompanyDTO):Company{
-         //validar o conteúdo do array
+    public function create(CompanyDTO $createCompanyDTO):Company{
 
         //validar o cnpj
         if(!Validator::validarCNPJ($createCompanyDTO->getCnpj())) throw new \Exception('CNPJ inválido');
@@ -86,6 +85,10 @@ class CompanyService{
         if ($this->companyRepository->existsByCnpj($createCompanyDTO->getCnpj())) {
             throw new \Exception('The company CNPJ is already registered ');
         } 
+        if(!$createCompanyDTO->getName())
+        {
+            throw new \Exception('The name is missing');
+        }
         //criar nova entidade Company
         $company = new Company();
         $company->setName($createCompanyDTO->getName());
@@ -105,7 +108,7 @@ class CompanyService{
      * @return array
      * @throws Exception
      */  
-    public function update($id, $cnpj, $Name):array{
+    public function update($id, CompanyDTO $companyDTO):array{
         // buscar a company pelo cnpj
         $company = $this->companyRepository->find($id);
         //validar se a company existe no banco de dados
@@ -113,21 +116,19 @@ class CompanyService{
         //validar o conteúdo do array
 
         //validar o cnpj
-        if(!Validator::validarCNPJ($cnpj)) throw new \Exception('CNPJ inválido');
+        if(!Validator::validarCNPJ($companyDTO->getCnpj())) throw new \Exception('CNPJ inválido');
         
         // validar se o cnpj já não está cadastrado
-        if ($this->companyRepository->existsByCnpj($cnpj)) 
+        if ($this->companyRepository->existsByCnpj($companyDTO->getCnpj())) 
         {
             throw new \Exception('The company CNPJ is already registered ');
         }
         //atualizar dados
-        if ($cnpj) {
-            $company->setCnpj($cnpj);
-        }
+     
+        $company->setCnpj($companyDTO->getCnpj());
         
-        if ($Name) {
-            $company->setName($Name);
-        } 
+        $company->setName($companyDTO->getName());
+
         // persistir dados
         $this->entityManager->flush();
         $data = $this->formateResponseDTO->formatarResponseCompany($company);

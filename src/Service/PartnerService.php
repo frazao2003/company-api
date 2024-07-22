@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Dto\PartnerDTO;
 use App\Dto\PartnerFilter;
 use App\Repository\PartnerRepository;
 use App\Utils\Validator;
@@ -9,6 +10,7 @@ use App\Repository\PartnerCompanyRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Partner;
 use App\Utils\MascaraCPFeCNPJ;
+
 
 class PartnerService{
     
@@ -65,17 +67,17 @@ class PartnerService{
      * @return Partner
      * @throws Exception
      */
-    public function create($cpf, $nome):Partner{
+    public function create(PartnerDTO $partnerDTO):Partner{
         //valida os campos do request
-        if(!Validator::validarCPF($cpf)) throw new \Exception('CPF inválido');
+        if(!Validator::validarCPF($partnerDTO->getCpf())) throw new \Exception('CPF inválido');
 
-        if(!Validator::isOnlyLettersAndSpaces($nome)) throw new \Exception('This field can only have letters');
+        if(!Validator::isOnlyLettersAndSpaces($partnerDTO->getName())) throw new \Exception('This field can only have letters');
         //inicia um novo partner 
         $partner = new Partner();
-        $partner->setName($nome);
-        $partner->setCpf($cpf);
+        $partner->setName($partnerDTO->getName());
+        $partner->setCpf($partnerDTO->getCpf());
         $partner->setCreatedAt(new \DateTimeImmutable('now', new \DateTimeZone('America/Sao_Paulo')));
-        $partner->setUpdatedAt(new \DateTimeImmutable('now', new \DateTimeZone('America/Sao_Paulo')));
+
         //persiste os dados
         $this->partnerRepository->add($partner, true);
         return $partner;
