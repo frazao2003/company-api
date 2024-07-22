@@ -21,16 +21,10 @@ class Partner
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $Nome = null;
+    private ?string $name = null;
 
     #[ORM\Column(length: 11)]
     private ?string $Cpf = null;
-
-    /**
-     * @var Collection<int, Companie>
-     */
-    #[ORM\OneToMany(targetEntity:"PartnerCompany", mappedBy:"company", cascade:['persist'])]
-    private $company;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $created_at = null;
@@ -50,14 +44,14 @@ class Partner
         return $this->id;
     }
 
-    public function getNome(): ?string
+    public function getName(): ?string
     {
-        return $this->Nome;
+        return $this->name;
     }
 
-    public function setNome(string $Nome): static
+    public function setName(string $name): static
     {
-        $this->Nome = $Nome;
+        $this->name = $name;
 
         return $this;
     }
@@ -101,28 +95,6 @@ class Partner
         return $this;
     }
 
-    public function getCompany()
-    {
-        return $this->company;
-    }
-    public function addCompany(Company $company, float $percent): void
-    {
-        $PartnerCompany = new PartnerCompany();
-        $PartnerCompany->setCompany($company);
-        $PartnerCompany->setPartner($this);
-        $PartnerCompany->setPercent($percent);
-    
-        $this->company->add($PartnerCompany);
-    }
-    public function removerCompany(Company $company): void
-    {
-        foreach ($this->company as $PartnerCompany) {
-            if ($PartnerCompany->getPartner() == $company) {
-                $this->company->removeElement($PartnerCompany);
-                return;
-            }
-        }
-    }
 
 }
 

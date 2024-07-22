@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Dto\CompanyFilter;
+use App\Dto\CreateCompanyDTO;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,9 +19,9 @@ class CompanyController extends AbstractController
     }
 
     #[Route('/companys', name: 'app_company', methods: ['GET'])]
-    public function getAll(): JsonResponse
+    public function filterCompanies(CompanyFilter $filter): JsonResponse
     {
-        $data = $this->companyService->getAll();
+        $data = $this->companyService->filterCompanies($filter);
         return $this->json(['data' => $data], 200);
         
     }
@@ -35,8 +37,10 @@ class CompanyController extends AbstractController
             $data = $request->request->all();
 
         }
-        $cnpj = $data['cnpj'];
-        $nomeFantasia = $data['nomeFantasia'];
+        $companyDTO = new CreateCompanyDTO(
+            $data['name'],
+            $data['cnpj']
+        );
         $company = $this->companyService->create($cnpj, $nomeFantasia);
         return $this->json([
             'message' => 'company Created Successfully',
@@ -45,8 +49,8 @@ class CompanyController extends AbstractController
     }
 
     //Atualizar uma empresa
-    #[Route('/companys', name: 'company_update', methods: ['PUT'])]
-    public function update(Request $request): JsonResponse
+    #[Route('/companys/{id}', name: 'company_update', methods: ['PUT'])]
+    public function update(Request $request, int $id): JsonResponse
     {
   
         //validar o tipo de dado do request
@@ -55,7 +59,6 @@ class CompanyController extends AbstractController
         }else{
             $data = $request->request->all();
         }
-        $id = $data['id'];
         $cnpj = $data['cnpj'];
         $nomeFantasia = $data['nomeFantasia'];
         $data = $this->companyService->update($id, $cnpj,$nomeFantasia);
@@ -65,60 +68,29 @@ class CompanyController extends AbstractController
         ], 201);
     }
     //Deletar uma empresa
-    #[Route('/companys', name: 'company_delete', methods: ['DELETE'])]
-    public function delete(Request $request): JsonResponse
-    {
-        //validar o tipo de dado do request
-        if($request -> headers->get('Content-Type') == 'application/json'){
-            $data = $request->toArray();
-        }else{
-            $data = $request->request->all();
-        }        
-        $cnpj = $data['cnpj'];
-        $data = $this->companyService->delete($cnpj);
+    #[Route('/companys/{id}', name: 'company_delete', methods: ['DELETE'])]
+    public function delete(int $id): JsonResponse
+    {      
+        $data = $this->companyService->delete($id);
         return $this->json([
             'message' => 'company deleted Successfully',
             'data' => $data
         ], 200);
 
     }
-    //Função para chamar um empresa pelo seu cnpj
-    #[Route('/companys/getByCnpj', name: 'company_get_bycnpj', methods: ['GET'])]
-    public function getByCnpj(Request $request): JsonResponse
+    //Função para chamar um empresa pelo seu id
+    #[Route('/companys/{id}', name: 'company_get_bycnpj', methods: ['GET'])]
+    public function getByid(int $id): JsonResponse
     {
-        //validar tipo de dado do request
-        if($request -> headers->get('Content-Type') == 'application/json'){
-            $data = $request->toArray();
-        }else{
-            $data = $request->request->all();
-        }
-        $cnpj = $data['cnpj'];
-        $data = $this->companyService->getByCnpj($cnpj);
+        $data = $this->companyService->getById($id);
         return $this->json([
             'message' => 'company Found',
             'data' => $data
         ],200);
     }
-       //Função para chamar um empresa pelo seu Nome
-       #[Route('/companys/getByNomeFantasia', name: 'company_get_byNomeFantasia', methods: ['GET'])]
-       public function getByNomeFantasia(Request $request): JsonResponse
-       {
-           //validar tipo de dado do request    
-           if($request -> headers->get('Content-Type') == 'application/json'){
-               $data = $request->toArray();
-           }else{
-               $data = $request->request->all();
-           }
-           $nomeFantasia = $data['nomefantasia'];
-           $data = $this->companyService->getByNomeFantasia($nomeFantasia);
-           return $this->json([
-               'message' => 'company Found',
-               'data' => $data
-               
-           ],200);
-       }
+       
     //Função para adicionar um socio a uma empresa
-    #[Route('/companys/addpartner', name: 'partner_addcompany', methods: ['PATCH'])]
+    #[Route('/companys/addpartner', name: 'partner_addcompany', methods: ['POST'])]
     public function addPartner( Request $request): JsonResponse
     {
         //validar tipos de dados do request

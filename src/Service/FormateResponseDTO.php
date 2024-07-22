@@ -1,20 +1,27 @@
 <?php
 namespace App\Service;
 
+use App\Repository\PartnerCompanyRepository;
 use App\Utils\MascaraCPFeCNPJ;
 
 class FormateResponseDTO{
     private MascaraCPFeCNPJ $mascaraCpfeCnpj;
+    private PartnerCompanyRepository $partnerCompanyRepository;
 
-    public function __construct(MascaraCPFeCNPJ $mascaraCPFeCNPJ){
+    public function __construct
+    (
+        MascaraCPFeCNPJ $mascaraCPFeCNPJ,
+        PartnerCompanyRepository $partnerCompanyRepository
+    ){
         $this->mascaraCpfeCnpj = $mascaraCPFeCNPJ;
+        $this->partnerCompanyRepository = $partnerCompanyRepository;
     }
 
 
 
     public function formatarResponseCompany($company)
     {
-        $Partnerscompany = $company->getPartners();
+        $Partnerscompany = $this -> partnerCompanyRepository-> findAllByCompany( $company );
         $cnpjMascarado = $this->mascaraCpfeCnpj->mascaraCNPJ($company->getCnpj());
 
            $companyData = [
@@ -31,7 +38,7 @@ class FormateResponseDTO{
                $PartnersData[] = [
                    'partner' => [
                        'nome' =>$Partnercompany->getPartner()->getNome(),
-                       'cpf' => $$cpfMascarado,
+                       'cpf' => $cpfMascarado,
                    ],
                    'percent' => $Partnercompany->getPercent()
                ];
@@ -45,13 +52,13 @@ class FormateResponseDTO{
 
     }
 
-    public function formatarPartnerResponse($partner){
+    public function formatePartnerResponse($partner){
         $partnerData  = [
             'id'=>$partner->getId(),
             'nome' =>$partner->getNome(),
             'cpf' =>$partner->getCpf()
         ];
-        $partnerCompanies = $partner->partnerCompanyRepository->findAllByPartner($partner);
+        $partnerCompanies = $this->partnerCompanyRepository->findAllByPartner($partner);
         $companyData = [];
         foreach($partnerCompanies as $partnerCompany){
             $companyData = [

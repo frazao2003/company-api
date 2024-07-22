@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Partner;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Dto\PartnerFilter;
 
 /**
  * @extends ServiceEntityRepository<Partner>
@@ -30,14 +31,27 @@ class PartnerRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
-    public function findOneByCpf(string $cpf): ?Partner
+    public function findByFilter(PartnerFilter $filter): array
     {
-        return $this->createQueryBuilder('s')
-            ->andWhere('s.Cpf= :Cpf')
-            ->setParameter('Cpf', $cpf)
-            ->getQuery()
-            ->getOneOrNullResult()
-            ;
+        $qb = $this->createQueryBuilder('s');
+        $hasFilters = false;
+        if ($filter->getName()) {
+            $qb->andWhere('s.name LIKE :name')
+               ->setParameter('name', '%' . $filter->getName() . '%');
+               $hasFilters = true;
+        }
+
+        if ($filter->getCpf()) {
+            $qb->andWhere('s.cnpj LIKE :cnpj')
+               ->setParameter('cnpj', '%' . $filter->getCpf() . '%');
+               $hasFilters = true;
+        }
+        if (!$hasFilters)
+        {
+            $this->findAll();
+        }
+
+        return $qb->getQuery()->getResult();
     }
     public function existsByCpf(string $cpf): bool
     {

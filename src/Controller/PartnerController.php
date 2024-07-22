@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Controller;
+use App\Dto\PartnerFilter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,9 +20,9 @@ class PartnerController extends AbstractController
     }
     //função para buscar todos os partner 
     #[Route('/partner', name: 'app_partner', methods: ['GET'])]
-    public function getAll(): JsonResponse
+    public function filterPartner(PartnerFilter $filter): JsonResponse
     {
-        $data = $this->partnerService->getAll();
+        $data = $this->partnerService->filterPartner($filter);
         return $this->json([
             'data' => $data
         ],200);
@@ -47,26 +48,17 @@ class PartnerController extends AbstractController
         ], 201);
     }
     //busca um partner pelo seu cpg
-    #[Route('/partner/getbyCpf', name: 'partner_single', methods: ['GET'])]
-    public function getSingle(Request $request): JsonResponse
+    #[Route('/partner/{id}', name: 'partner_single', methods: ['GET'])]
+    public function getSingle(int $id): JsonResponse
     {
-        //verifica o tipo de dado do request
-        if($request -> headers->get('Content-Type') == 'application/json'){
-            $data = $request->toArray();
-
-        }else{
-            $data = $request->request->all();
-
-        }
-        $cpf = $data['cpf'];
-        $data = $this->partnerService->getByCpf($cpf);
+        $data = $this->partnerService->getById($id);
         return $this->json([
             'data' => $data,
         ],200);
     }
     //Atualiza um sócio pelo seu id
-    #[Route('/partner/update', name: 'partner_update', methods: ['PUT'])]
-    public function update(int $partner, Request $request): JsonResponse
+    #[Route('/partner/update/{id}', name: 'partner_update', methods: ['PUT'])]
+    public function update(int $id, Request $request): JsonResponse
     {
         //verfica o tidpo de dado do request
         if($request -> headers->get('Content-Type') == 'application/json'){
@@ -74,7 +66,6 @@ class PartnerController extends AbstractController
         }else{
             $data = $request->request->all();
         }
-        $id = $data['id'];
         $nome = $data['nome'];
         $cpf = $data['cpf'];
         $partner = $this->partnerService->update($id, $nome, $cpf);
@@ -84,17 +75,11 @@ class PartnerController extends AbstractController
         ], 201);
     } 
     //Deleta um sócio
-    #[Route('/partner/deleteByCPF', name: 'partner_delete', methods: ['DELETE'])]
-    public function delete(Request $request): JsonResponse
+    #[Route('/partner/delete/{id}', name: 'partner_delete', methods: ['DELETE'])]
+    public function delete(Request $request, int $id): JsonResponse
     {
-        //valida o tipo de dado do request
-        if($request -> headers->get('Content-Type') == 'application/json'){
-            $data = $request->toArray();
-        }else{
-            $data = $request->request->all();
-        }
-        $cpf = $data['cpf'];
-        $partner = $this->partnerService->delete($cpf);
+        
+        $partner = $this->partnerService->delete($id);
         return $this->json([
             'message' => 'partner deleted Successfully',
             'data' => $partner

@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Dto\PartnerFilter;
 use App\Repository\PartnerRepository;
 use App\Utils\Validator;
 use App\Repository\PartnerCompanyRepository;
@@ -39,33 +40,22 @@ class PartnerService{
      * 
      * @return array
      */
-    public function getAll():array{
+    public function filterPartner(PartnerFilter $partnerFilter):array{
         //Chama todos os partner do banco de dados
-        $partners = $this->partnerRepository->findAll();
+        $partners = $this->partnerRepository->findByFilter($partnerFilter);
         $data = [];
-        //formata os dados do response
-        foreach($partners as $partner){
+        foreach($partners as $partner) 
+        {
             $cpfMascarado = $this->mascaraCpfeCnpj->mascaraCPF($partner->getCpf());
-            $partnerData  = [
-                'nome' =>$partner->getNome(),
-                'cpf' =>$cpfMascarado
+            $data[] = [
+                "id"=> $partner->getId(),
+                "name"=> $partner->getName(),
+                "cpf"=> $cpfMascarado,
             ];
-            $partnerCompanies = $this->partnerCompanyRepository->findAllByPartner($partner);
-            $companyData = [];
-            foreach($partnerCompanies as $partnerCompany){
-                $cnpjMascarado = $this->mascaraCpfeCnpj->mascaraCNPJ($partnerCompany->getCompany()->getCnpj());
-                $companyData = [
-                    'nomeFantasia'=> $partnerCompany->getCompany()->getNomeFantasia(),
-                    'cnpj' => $cnpjMascarado,
-                    'percent' => $partnerCompany->getPercent()
-                ];
-            }
-            $data [] = [
-                'partner'=> $partnerData,
-                'company' => $companyData
-            ];
-            return $data;
         }
+       
+        return $data;
+        
     }
     /**
      * Cria um novo parceiro.
@@ -82,7 +72,7 @@ class PartnerService{
         if(!Validator::isOnlyLettersAndSpaces($nome)) throw new \Exception('This field can only have letters');
         //inicia um novo partner 
         $partner = new Partner();
-        $partner->setNome($nome);
+        $partner->setName($nome);
         $partner->setCpf($cpf);
         $partner->setCreatedAt(new \DateTimeImmutable('now', new \DateTimeZone('America/Sao_Paulo')));
         $partner->setUpdatedAt(new \DateTimeImmutable('now', new \DateTimeZone('America/Sao_Paulo')));
@@ -91,20 +81,17 @@ class PartnerService{
         return $partner;
     }
     /**
-     * Busca um parceiro pelo CPF.
+     * Busca um parceiro pelo id.
      * 
      * @param string $cpf
      * @return array
      * @throws Exception
      */
-    public function getByCpf($cpf):array{
-        //valida i cof
-        if(!Validator::validarCPF($cpf)) throw new \Exception('CPF inválido');
-        //busca no banco e valida a existência
-        $partner = $this->partnerRepository->findOneByCpf($cpf);
+    public function getById($id):array{
+        $partner = $this->partnerRepository->find($id);
         if(!$partner) throw new \Exception('partner was not found');
         //formata o response
-        $data = $this->formateResponseDTO->formatarPartnerResponse($partner);
+        $data = $this->formateResponseDTO->formatePartnerResponse($partner);
         return $data;
     }
     /**
@@ -138,9 +125,9 @@ class PartnerService{
      * @return Partner
      * @throws Exception
      */
-    public function delete($cpf):Partner{
+    public function delete($id):Partner{
         //busca no banco de dados e valida existência
-        $partner = $this->partnerRepository->findOneByCpf($cpf);
+        $partner = $this->partnerRepository->find($id);
         if(!$partner) throw new \Exception('partner was not found');
         //busca todos os partnerCompany associados a esse ártner
         $partnerCompanies = $this->partnerCompanyRepository->findAllByPartner($partner);
@@ -151,7 +138,6 @@ class PartnerService{
             $this->entityManager->remove($partnerCompany);
             $this->entityManager->persist($company);
             $this->entityManager->flush();
-
         }
         //remove o partner
         $this->partnerRepository->remove($partner, true);

@@ -18,17 +18,13 @@ class Company
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $nomeFantasia = null;
+    private ?string $name = null;
 
     #[ORM\Column(length: 14)]
     private ?string $cnpj = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $created_at = null;
-
-    
-    #[ORM\OneToMany(targetEntity:"PartnerCompany", mappedBy:"company", cascade:["persist"])]
-    private $Partners;
 
     #[ORM\Column]
     private ?float $percent = null;
@@ -43,14 +39,14 @@ class Company
         return $this->id;
     }
 
-    public function getNomeFantasia(): ?string
+    public function getName(): ?string
     {
-        return $this->nomeFantasia;
+        return $this->Name;
     }
 
-    public function setNomeFantasia(string $nomeFantasia): static
+    public function setName(string $Name): static
     {
-        $this->nomeFantasia = $nomeFantasia;
+        $this->Name = $Name;
 
         return $this;
     }
@@ -78,52 +74,6 @@ class Company
 
         return $this;
     }
-
-    public function getPartners()
-    {
-        return $this->Partners;
-    }
-
-    public function addPartner(Partner $Partner, float $percent): void
-    {
-        $PartnerCompany = new PartnerCompany();
-        $PartnerCompany->setCompany($this);
-        $PartnerCompany->setPartner($Partner);
-        $PartnerCompany->setPercent($percent);
-    
-        $this->Partners->add($PartnerCompany);
-    }
-
-    public function removerPartner(Partner $Partner): void
-    {
-        foreach ($this->Partners as $PartnerCompany) {
-            if ($PartnerCompany->getPartner() == $Partner) {
-                $this->Partners->removeElement($PartnerCompany);
-                return;
-            }
-        }
-    }
-
-    public function verificarPartner(Partner $Partner): bool
-    {
-        foreach ($this->Partners as $PartnerCompany) {
-            if ($PartnerCompany->getPartner()->getId() === $Partner->getId()) {
-                return true;
-            }
-            
-        }
-        return false;
-    }
-    public function getPartnerCompany(Partner $partner): ?PartnerCompany
-    {
-        foreach ($this->Partners as $partnerCompany) {
-            if ($partnerCompany->getPartner()->getId() === $partner->getId()) {
-                return $partnerCompany;
-            }
-        }
-        return null;
-    }
-
 
     public function getPercent(): ?float
     {

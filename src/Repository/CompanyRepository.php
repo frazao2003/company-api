@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Company;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Dto\CompanyFilter;
 
 /**
  * @extends ServiceEntityRepository<Company>
@@ -60,6 +61,29 @@ class CompanyRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult()
             ;
+    }
+
+    public function findByFilter(CompanyFilter $filter): array
+    {
+        $qb = $this->createQueryBuilder('c');
+        $hasFilters = false;
+        if ($filter->getName()) {
+            $qb->andWhere('c.name LIKE :name')
+               ->setParameter('name', '%' . $filter->getName() . '%');
+               $hasFilters = true;
+        }
+
+        if ($filter->getCnpj()) {
+            $qb->andWhere('c.cnpj LIKE :cnpj')
+               ->setParameter('cnpj', '%' . $filter->getCnpj() . '%');
+               $hasFilters = true;
+        }
+        if (!$hasFilters)
+        {
+            $this->findAll();
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
 

@@ -2,8 +2,11 @@
 
 namespace App\Service;
 
+use App\Dto\CompanyFilter;
+use App\Dto\CreateCompanyDTO;
 use App\Entity\Company;
 
+use App\Entity\PartnerCompany;
 use App\Repository\CompanyRepository;
 use App\Repository\PartnerRepository;
 use App\Utils\Validator;
@@ -44,38 +47,24 @@ class CompanyService{
 
     }
     /**
-     * Retorna uma lista de todas as empresas e seus respectivos parceiros.
+     * Filtra ou tras todas as empresas
      * 
      * @return array
      */
-    public function getAll():array{
-        $companies = $this->companyRepository->findAll();
-        $companiesData = [];
+    public function filterCompanies(CompanyFilter $companyFilter):array{
+        $companies = $this->companyRepository->findByFilter($companyFilter);
         $data = [];
-        //Formatar o array response
-        foreach($companies as $company){
+        foreach ($companies as $company)
+        {
             $cnpjMascarado = $this->mascaraCpfeCnpj->mascaraCNPJ($company->getCnpj());
-            $companiesData []= [
-                'nomeFantasia' => $company->getNomeFantasia(),
-                'cnpj' => $cnpjMascarado,
-                'percent' => $company->getPercent()
+            $data [] = 
+            [
+                "id"=> $company->getId(),
+                "name"=> $company->getName(),
+                "cnpj" => $cnpjMascarado,
             ];
-            $partnercompanies = $this->partnerCompanyRepository->findAllByCompany($company);
-            $partnerData = [];
-            foreach($partnercompanies as $partnercompany){
-                $cpfMascarado = $this->mascaraCpfeCnpj->mascaraCPF($partnercompany->getPartner()->getCpf());
-                $partnerData [] = [
-                    'nome' => $partnercompany->getPartner()->getNome(),
-                    'cpf' => $cpfMascarado,
-                    'percent' => $partnercompany->getPercent()
-                ];
-            }
-            $data[] = [
-                'company' => $companiesData,
-                'partners' => $partnerData
-            ];
-            $companiesData = [];
         }
+        //Formatar o array response
         return $data;
     }
 
@@ -83,31 +72,24 @@ class CompanyService{
      * Cria uma nova empresa.
      * 
      * @param string $cnpj
-     * @param string $nomeFantasia
+     * @param string $Name
      * @return Company
      * @throws Exception
      */    
-    public function create($cnpj, $nomeFantasia):Company{
+    public function create(CreateCompanyDTO $createCompanyDTO):Company{
          //validar o conteúdo do array
-         if (!$cnpj) {
-            throw new \Exception('CNPJ is missing');
-        }
-        
-        if (!$nomeFantasia) {
-            throw new \Exception('Nome Fantasia is missing');
-        }
 
         //validar o cnpj
-        if(!Validator::validarCNPJ($cnpj)) throw new \Exception('CNPJ inválido');
+        if(!Validator::validarCNPJ($createCompanyDTO->getCnpj())) throw new \Exception('CNPJ inválido');
         
         // validar se o cnpj já não está cadastrado
-        if ($this->companyRepository->existsByCnpj($cnpj)) {
+        if ($this->companyRepository->existsByCnpj($createCompanyDTO->getCnpj())) {
             throw new \Exception('The company CNPJ is already registered ');
         } 
         //criar nova entidade Company
         $company = new Company();
-        $company->setNomeFantasia($nomeFantasia);
-        $company->setCnpj($cnpj);
+        $company->setName($createCompanyDTO->getName());
+        $company->setCnpj($createCompanyDTO->getCnpj());
         $company->setCreatedAt(new \DateTimeImmutable('now', new \DateTimeZone('America/Sao_Paulo')));
         $company->setPercent(100);
         //persistir os dados no banco de dados
@@ -119,11 +101,11 @@ class CompanyService{
      * 
      * @param int $id
      * @param string|null $cnpj
-     * @param string|null $nomeFantasia
+     * @param string|null $Name
      * @return array
      * @throws Exception
      */  
-    public function update($id, $cnpj, $nomeFantasia):array{
+    public function update($id, $cnpj, $Name):array{
         // buscar a company pelo cnpj
         $company = $this->companyRepository->find($id);
         //validar se a company existe no banco de dados
@@ -134,7 +116,8 @@ class CompanyService{
         if(!Validator::validarCNPJ($cnpj)) throw new \Exception('CNPJ inválido');
         
         // validar se o cnpj já não está cadastrado
-        if ($this->companyRepository->existsByCnpj($cnpj)) {
+        if ($this->companyRepository->existsByCnpj($cnpj)) 
+        {
             throw new \Exception('The company CNPJ is already registered ');
         }
         //atualizar dados
@@ -142,8 +125,8 @@ class CompanyService{
             $company->setCnpj($cnpj);
         }
         
-        if ($nomeFantasia) {
-            $company->setNomeFantasia($nomeFantasia);
+        if ($Name) {
+            $company->setName($Name);
         } 
         // persistir dados
         $this->entityManager->flush();
@@ -157,9 +140,9 @@ class CompanyService{
      * @return array
      * @throws Exception
      */
-    public function delete($cnpj):array{
+    public function delete(int $id):array{
          //buscar a company pelo id
-         $company = $this->companyRepository->findOneByCnpj($cnpj);
+         $company = $this->companyRepository->find($id);
          //validar se a company existe no banco de dados
          if(!$company) throw new \Exception('company was not found');
          //deletar todos os partner associados 
@@ -172,24 +155,9 @@ class CompanyService{
          $data = $this->formateResponseDTO->formatarResponseCompany($company);
          return $data;
     }
-    /**
-     * Busca uma empresa pelo nome fantasia.
-     * 
-     * @param string $nomeFantasia
-     * @return array
-     * @throws Exception
-     */
-    public function getByNomeFantasia($nomeFantasia):array{
-         //buscar company pelo nomeFantasisa
-         $company = $this->companyRepository->findOneByNomeFantasia($nomeFantasia);
-         //validar existência
-         if(!$company) throw new \Exception('company was not found');
-         
-         //formatar para response
-         $data = $this->formateResponseDTO->formatarResponseCompany($company);
-         return $data;
-    
-    }
+
+
+
     /**
      * Busca uma empresa pelo CNPJ.
      * 
@@ -197,11 +165,9 @@ class CompanyService{
      * @return array
      * @throws Exception
      */
-    public function getByCnpj($cnpj):array{
-        //validar CNPJ
-        if(!Validator::validarCNPJ($cnpj)) throw new \Exception('CNPJ inválido');
+    public function getById($id):array{
         //buscar a company pelo CNPJ
-        $company = $this->companyRepository->findOneByCnpj($cnpj);
+        $company = $this->companyRepository->find($id);
         //validar a existência
         if(!$company) throw new \Exception('company was not found');
         //formatar para response
@@ -230,8 +196,9 @@ class CompanyService{
         $Partner = $this->partnerRepository->findOneByCpf($cpf);
         if(!$Partner) throw new \Exception('Partner was not found');
         // validar se o partner já está associado com a company
-        if ($company->verificarPartner($Partner)) {
-            throw new \Exception('Partner is not associated with this company.');
+        $partnerCompany = $this->partnerCompanyRepository->findOneBy(['company' => $company, 'Partner' => $Partner]);
+        if ($partnerCompany) {
+            throw new \Exception('Partner is already associated with this company.');
         }
         //validar se a porcentagem está disponível na company
         if($company->getPercent() < $percent){
@@ -240,8 +207,11 @@ class CompanyService{
 
 
         //persistir dados
-        $company->addPartner($Partner,$percent);
-        $company->setPercent($company->getPercent() -$percent);
+        $partnerCompany = new PartnerCompany();
+        $partnerCompany->setCompany($company);
+        $partnerCompany->setPartner($Partner);
+        $partnerCompany->setPercent($percent);
+        $this->entityManager->persist($partnerCompany);
         $this->entityManager->flush();
         //formatar response
         $data = $this->formateResponseDTO->formatarResponseCompany($company);
@@ -306,7 +276,7 @@ class CompanyService{
             throw new \Exception('The percentage exceeds the available percentage of the company.');
         }
         //valida se o partner está associado a company
-        $partnercompany = $company->getPartnerCompany($Partner);
+        $partnercompany = $this->partnerCompanyRepository->findOneBy(['company' => $company, 'Partner' => $Partner]);
         if (!$partnercompany) {
             throw new \Exception('Partner isnt associated with this company.');
         }
