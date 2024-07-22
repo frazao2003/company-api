@@ -105,18 +105,20 @@ class PartnerService{
      * @return Partner
      * @throws Exception
      */
-    public function update($id, $nome, $cpf):Partner{
+    public function update($id, PartnerDTO $partnerDTO):Partner{
         //busca o partner pelo id e valida a existência
         $partner = $this->partnerRepository->find($id);
         if(!$partner) throw new \Exception('partner was not found');
-        if($nome){
-            $partner->setNome($nome);
+
+        if (!Validator::isOnlyLettersAndSpaces($partnerDTO->getName())){
+            throw new \Exception('The name has to contain only letters');
         }
+        $partner->setName($partnerDTO->getName());
+        
         //valida o cpf
-        if(!Validator::validarCPF($cpf)) throw new \Exception('CPF inválido');
-        if($cpf){
-            $partner->setCpf($cpf);
-        }
+        if(!Validator::validarCPF($partnerDTO->getCpf())) throw new \Exception('CPF inválido');
+        
+        $partner->setCpf($partnerDTO->getCpf());
         $this->entityManager->flush();
         return $partner;
     }

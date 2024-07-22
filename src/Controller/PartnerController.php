@@ -53,7 +53,7 @@ class PartnerController extends AbstractController
             $data['name'],
             $data['cnpj']
         );
-        $partner = $this->partnerService->create($cpf, $nome);
+        $partner = $this->partnerService->create($partnerDto);
         return $this->json([
             'message' => 'partner Created Successfully',
             'data' => $partner
@@ -78,9 +78,12 @@ class PartnerController extends AbstractController
         }else{
             $data = $request->request->all();
         }
-        $nome = $data['nome'];
-        $cpf = $data['cpf'];
-        $partner = $this->partnerService->update($id, $nome, $cpf);
+        $partnerDto = new PartnerDto
+        (            
+            $data['name'],
+            $data['cnpj']
+        );
+        $partner = $this->partnerService->update($id, $partnerDto);
         return $this->json([
             'message' => 'partner Updated Successfully',
             'data' => $partner
