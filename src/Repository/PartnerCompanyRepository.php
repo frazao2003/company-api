@@ -29,7 +29,7 @@ class PartnerCompanyRepository extends ServiceEntityRepository
 
         
     }
-    public function findAllByPartner(Partner $partner): ?Collection
+    public function findAllByPartner(Partner $partner): ?ArrayCollection
     {
         $result = $this->createQueryBuilder('c')
             ->andWhere('c.Partner= :Partner')
@@ -40,7 +40,7 @@ class PartnerCompanyRepository extends ServiceEntityRepository
             return new ArrayCollection($result);
             
     }
-    public function findAllByCompany(Company $company): ?Collection
+    public function findAllByCompany(Company $company): ?ArrayCollection
     {
         $result = $this->createQueryBuilder('c')
             ->andWhere('c.company= :company')
